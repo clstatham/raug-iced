@@ -9,8 +9,8 @@ fn main() {
     let graph = IcedGraphBuilder::new();
 
     // add some outputs
-    let out1 = graph.output();
-    let out2 = graph.output();
+    let out1 = graph.add_output();
+    let out2 = graph.add_output();
 
     // add a sine oscillator
     let sine = graph.sine_osc();
@@ -19,7 +19,7 @@ fn main() {
     let (freq_knob, freq) = graph.knob();
 
     // connect the frequency knob to output an audio-type signal, and smooth it
-    let freq = freq.m2s().smooth();
+    let freq = freq.smooth();
 
     // scale the smooth processor output to a frequency range
     let freq = freq * 1000.0;
