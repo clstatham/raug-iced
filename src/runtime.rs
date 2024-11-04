@@ -1,10 +1,10 @@
-use raug::{
-    prelude::*,
-    runtime::{RuntimeError, RuntimeHandle},
-};
 use iced::{
     widget::{button, column},
     Application, Command,
+};
+use raug::{
+    prelude::*,
+    runtime::{RuntimeError, RuntimeHandle},
 };
 
 use crate::widgets::Widget;
@@ -94,7 +94,7 @@ impl<T: Widget> Application for IcedRuntimeApp<T> {
                     return Command::none();
                 }
 
-                let mut runtime = self.runtime.take().unwrap();
+                let runtime = self.runtime.as_mut().unwrap();
                 let handle = runtime
                     .run(self.backend.clone(), self.device.clone())
                     .unwrap();

@@ -26,8 +26,8 @@ impl IcedGraphBuilder {
     }
 
     pub fn add_widget<T: Widget>(&self, widget: T) -> (T, Node) {
-        let rx = widget.rx();
-        let node = self.add_processor(rx);
+        let param = widget.param().clone();
+        let node = self.add_processor(param);
         (widget, node)
     }
 

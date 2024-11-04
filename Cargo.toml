@@ -13,7 +13,8 @@ derive_more = { version = "1", features = ["display"] }
 thiserror = "1.0"
 
 [dependencies.raug]
-git = "https://github.com/clstatham/raug"
+# git = "https://github.com/clstatham/raug"
+path = "../raug"
 
 [dev-dependencies]
 env_logger = "0.11"

@@ -25,11 +25,11 @@ fn main() {
     let freq = freq * 1000.0;
 
     // set the frequency of the sine oscillator
-    freq.output(0).connect(sine.input(0));
+    freq.output(0).connect(&sine.input(0));
 
     // connect the sine oscillator to the outputs
-    sine.output(0).connect(out1.input(0));
-    sine.output(0).connect(out2.input(0));
+    sine.output(0).connect(&out1.input(0));
+    sine.output(0).connect(&out2.input(0));
 
     // build the graph and run the runtime
     graph
