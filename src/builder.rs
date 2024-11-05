@@ -5,7 +5,10 @@ use raug::{
     prelude::{GraphBuilder, Node},
 };
 
-use crate::{runtime::IcedRuntime, widgets::Widget};
+use crate::{
+    runtime::IcedRuntime,
+    widgets::{IntoParamVec, Widget},
+};
 
 #[derive(Default)]
 pub struct IcedGraphBuilder {
@@ -25,10 +28,14 @@ impl IcedGraphBuilder {
         Self::default()
     }
 
-    pub fn add_widget<T: Widget>(&self, widget: T) -> (T, Node) {
-        let param = widget.param().clone();
-        let node = self.add_processor(param);
-        (widget, node)
+    pub fn add_widget<T: Widget>(&self, widget: T) -> (T, Vec<Node>) {
+        let param = widget.params().clone();
+        let mut nodes = Vec::new();
+        for param in param.into_param_vec() {
+            let node = self.add_processor(param);
+            nodes.push(node);
+        }
+        (widget, nodes)
     }
 
     pub fn build(self) -> Graph {

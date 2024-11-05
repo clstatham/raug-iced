@@ -16,7 +16,10 @@ fn main() {
     let sine = graph.sine_osc();
 
     // add a frequency knob
-    let (freq_knob, freq) = graph.knob();
+    let (freq_knob, freq_knob_params) = graph.knob();
+    let [freq] = &freq_knob_params[..] else {
+        unreachable!()
+    };
 
     // connect the frequency knob to output an audio-type signal, and smooth it
     let freq = freq.smooth();

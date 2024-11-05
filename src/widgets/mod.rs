@@ -5,11 +5,27 @@ use iced::{widget::*, Element};
 use iced_audio::{Normal, NormalParam};
 use raug::prelude::*;
 
+pub trait IntoParamVec: Send + Sync + Debug + Clone {
+    fn into_param_vec(self) -> Vec<Param>;
+}
+
 pub trait Widget: 'static {
     type Message: Send + Sync + Debug + Clone + 'static;
+    type Params: IntoParamVec;
     fn view(&self) -> Element<Self::Message>;
     fn update(&mut self, message: Self::Message);
-    fn param(&self) -> &Param;
+    fn params(&self) -> Self::Params;
+}
+
+#[derive(Debug, Clone)]
+pub struct ButtonParams {
+    pub pressed: Param,
+}
+
+impl IntoParamVec for ButtonParams {
+    fn into_param_vec(self) -> Vec<Param> {
+        vec![self.pressed]
+    }
 }
 
 pub struct Button {
@@ -21,13 +37,14 @@ impl Button {
     pub fn new(label: &str) -> Self {
         Self {
             label: label.to_string(),
-            param: Param::new(),
+            param: Param::new(label),
         }
     }
 }
 
 impl Widget for Button {
     type Message = ();
+    type Params = ButtonParams;
     fn view(&self) -> Element<()> {
         button(self.label.as_str()).on_press(()).into()
     }
@@ -36,14 +53,35 @@ impl Widget for Button {
         self.param.tx().send(Message::Bang);
     }
 
-    fn param(&self) -> &Param {
-        &self.param
+    fn params(&self) -> Self::Params {
+        ButtonParams {
+            pressed: self.param.clone(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct KnobParams {
+    pub value: Param,
+}
+
+impl Default for KnobParams {
+    fn default() -> Self {
+        Self {
+            value: Param::new("knob"),
+        }
+    }
+}
+
+impl IntoParamVec for KnobParams {
+    fn into_param_vec(self) -> Vec<Param> {
+        vec![self.value]
     }
 }
 
 #[derive(Default)]
 pub struct Knob {
-    param: Param,
+    params: KnobParams,
     normal_param: NormalParam,
     tick_marks: iced_audio::tick_marks::Group,
 }
@@ -51,7 +89,7 @@ pub struct Knob {
 impl Knob {
     pub fn new() -> Self {
         Self {
-            param: Param::new(),
+            params: KnobParams::default(),
             normal_param: NormalParam::default(),
             tick_marks: iced_audio::tick_marks::Group::default(),
         }
@@ -60,6 +98,7 @@ impl Knob {
 
 impl Widget for Knob {
     type Message = Normal;
+    type Params = KnobParams;
     fn view(&self) -> Element<Normal> {
         iced_audio::Knob::new(self.normal_param, |value| value)
             .tick_marks(&self.tick_marks)
@@ -68,51 +107,79 @@ impl Widget for Knob {
 
     fn update(&mut self, message: Normal) {
         self.normal_param.update(message);
-        self.param.set(self.normal_param.value.as_f32() as f64);
+        self.params
+            .value
+            .set(self.normal_param.value.as_f32() as f64);
     }
 
-    fn param(&self) -> &Param {
-        &self.param
+    fn params(&self) -> Self::Params {
+        self.params.clone()
     }
 }
 
 impl IcedGraphBuilder {
-    pub fn knob(&self) -> (Knob, Node) {
+    pub fn knob(&self) -> (Knob, Vec<Node>) {
         self.add_widget(Knob::new())
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct DragNumberParams {
+    pub value: Param,
+}
+
+impl IntoParamVec for DragNumberParams {
+    fn into_param_vec(self) -> Vec<Param> {
+        vec![self.value]
+    }
+}
+
+impl Default for DragNumberParams {
+    fn default() -> Self {
+        Self {
+            value: Param::new("drag_number"),
+        }
+    }
+}
+
+/// A simple widget that allows the user to drag a number.
+///
+/// The widget can be dragged horizontally to change the value, or double-clicked to type in a new value.
 #[derive(Default)]
-pub struct NumberDialer {
-    param: Param,
+pub struct DragNumber {
+    params: DragNumberParams,
     value: f64,
 }
 
-impl NumberDialer {
+impl DragNumber {
     pub fn new() -> Self {
         Self::default()
     }
 }
 
-impl Widget for NumberDialer {
+impl Widget for DragNumber {
     type Message = f64;
+    type Params = DragNumberParams;
     fn view(&self) -> Element<f64> {
         let value = self.value.to_string();
-        TextInput::new("", &value).into()
+
+        let wid = mouse_area(text_input("", &value));
+
+        wid.into()
     }
 
     fn update(&mut self, message: f64) {
         self.value = message;
-        self.param.set(message);
+        self.params.value.set(message);
     }
 
-    fn param(&self) -> &Param {
-        &self.param
+    fn params(&self) -> Self::Params {
+        self.params.clone()
     }
 }
 
 impl IcedGraphBuilder {
-    pub fn number_dialer(&self) -> (NumberDialer, Node) {
-        self.add_widget(NumberDialer::new())
+    pub fn number_dialer(&self) -> (DragNumber, Vec<Node>) {
+        self.add_widget(DragNumber::new())
     }
 }

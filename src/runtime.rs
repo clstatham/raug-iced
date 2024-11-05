@@ -42,7 +42,7 @@ impl<T: Widget> IcedRuntime<T> {
             id: None,
             window: Default::default(),
             default_font: None,
-            default_text_size: 16.0,
+            default_text_size: 20.0,
             antialiasing: true,
             exit_on_close_request: true,
             text_multithreading: false,
@@ -85,6 +85,10 @@ impl<T: Widget> Application for IcedRuntimeApp<T> {
 
     fn title(&self) -> String {
         "raug".to_string()
+    }
+
+    fn theme(&self) -> Self::Theme {
+        iced::theme::Theme::Dark
     }
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
