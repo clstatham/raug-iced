@@ -37,7 +37,7 @@ impl Button {
     pub fn new(label: &str) -> Self {
         Self {
             label: label.to_string(),
-            param: Param::new(label),
+            param: Param::new(label, None),
         }
     }
 }
@@ -50,7 +50,7 @@ impl Widget for Button {
     }
 
     fn update(&mut self, _message: ()) {
-        self.param.tx().send(Message::Bang);
+        self.param.set(Message::Bang);
     }
 
     fn params(&self) -> Self::Params {
@@ -68,7 +68,7 @@ pub struct KnobParams {
 impl Default for KnobParams {
     fn default() -> Self {
         Self {
-            value: Param::new("knob"),
+            value: Param::new("knob", None),
         }
     }
 }
@@ -109,7 +109,7 @@ impl Widget for Knob {
         self.normal_param.update(message);
         self.params
             .value
-            .set(self.normal_param.value.as_f32() as f64);
+            .set(self.normal_param.value.as_f32() as Sample);
     }
 
     fn params(&self) -> Self::Params {
@@ -137,7 +137,7 @@ impl IntoParamVec for DragNumberParams {
 impl Default for DragNumberParams {
     fn default() -> Self {
         Self {
-            value: Param::new("drag_number"),
+            value: Param::new("drag_number", None),
         }
     }
 }
@@ -148,7 +148,7 @@ impl Default for DragNumberParams {
 #[derive(Default)]
 pub struct DragNumber {
     params: DragNumberParams,
-    value: f64,
+    value: Sample,
 }
 
 impl DragNumber {
@@ -158,9 +158,9 @@ impl DragNumber {
 }
 
 impl Widget for DragNumber {
-    type Message = f64;
+    type Message = Sample;
     type Params = DragNumberParams;
-    fn view(&self) -> Element<f64> {
+    fn view(&self) -> Element<Sample> {
         let value = self.value.to_string();
 
         let wid = mouse_area(text_input("", &value));
@@ -168,7 +168,7 @@ impl Widget for DragNumber {
         wid.into()
     }
 
-    fn update(&mut self, message: f64) {
+    fn update(&mut self, message: Sample) {
         self.value = message;
         self.params.value.set(message);
     }

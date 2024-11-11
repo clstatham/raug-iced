@@ -9,11 +9,11 @@ fn main() {
     let graph = IcedGraphBuilder::new();
 
     // add some outputs
-    let out1 = graph.add_output();
-    let out2 = graph.add_output();
+    let out1 = graph.add_audio_output();
+    let out2 = graph.add_audio_output();
 
     // add a sine oscillator
-    let sine = graph.sine_osc();
+    let sine = graph.add(SineOscillator::default());
 
     // add a frequency knob
     let (freq_knob, freq_knob_params) = graph.knob();
@@ -22,7 +22,7 @@ fn main() {
     };
 
     // connect the frequency knob to output an audio-type signal, and smooth it
-    let freq = freq.smooth();
+    let freq = freq.smooth(0.01);
 
     // scale the smooth processor output to a frequency range
     let freq = freq * 1000.0;
@@ -37,6 +37,6 @@ fn main() {
     // build the graph and run the runtime
     graph
         .build_runtime(freq_knob)
-        .run(Backend::Default, Device::default())
+        .run(AudioBackend::Default, AudioDevice::default())
         .unwrap();
 }

@@ -32,7 +32,7 @@ impl IcedGraphBuilder {
         let param = widget.params().clone();
         let mut nodes = Vec::new();
         for param in param.into_param_vec() {
-            let node = self.add_processor(param);
+            let node = self.add(param);
             nodes.push(node);
         }
         (widget, nodes)

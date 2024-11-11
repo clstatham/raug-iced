@@ -34,7 +34,7 @@ impl<T: Widget> IcedRuntime<T> {
         Self { graph, main_widget }
     }
 
-    pub fn run(self, backend: Backend, device: Device) -> Result<(), IcedRuntimeError> {
+    pub fn run(self, backend: AudioBackend, device: AudioDevice) -> Result<(), IcedRuntimeError> {
         let Self { graph, main_widget } = self;
 
         let settings = iced::Settings {
@@ -58,15 +58,15 @@ pub struct IcedRuntimeApp<T: Widget> {
     handle: Option<RuntimeHandle>,
     main_widget: T,
     running: bool,
-    backend: Backend,
-    device: Device,
+    backend: AudioBackend,
+    device: AudioDevice,
 }
 
 impl<T: Widget> Application for IcedRuntimeApp<T> {
     type Executor = iced::executor::Default;
     type Message = IcedRuntimeMessage<T::Message>;
     type Theme = iced::theme::Theme;
-    type Flags = (Graph, T, Backend, Device);
+    type Flags = (Graph, T, AudioBackend, AudioDevice);
 
     fn new((graph, main_widget, backend, device): Self::Flags) -> (Self, Command<Self::Message>) {
         let runtime = Runtime::new(graph);
@@ -100,7 +100,7 @@ impl<T: Widget> Application for IcedRuntimeApp<T> {
 
                 let runtime = self.runtime.as_mut().unwrap();
                 let handle = runtime
-                    .run(self.backend.clone(), self.device.clone())
+                    .run(self.backend.clone(), self.device.clone(), None)
                     .unwrap();
                 self.handle = Some(handle);
                 self.running = true;
