@@ -16,7 +16,7 @@ fn main() {
     let sine = graph.add(SineOscillator::default());
 
     // add a frequency knob
-    let (freq_knob, freq_knob_params) = graph.knob();
+    let (freq_knob, freq_knob_params) = graph.add_widget(Knob::new());
     let [freq] = &freq_knob_params[..] else {
         unreachable!()
     };

@@ -1,14 +1,15 @@
 use std::fmt::Debug;
 
-use crate::builder::IcedGraphBuilder;
 use iced::{widget::*, Element};
 use iced_audio::{Normal, NormalParam};
 use raug::prelude::*;
 
+/// A trait for converting widget parameter structs into a vector of [`Param`]s.
 pub trait IntoParamVec: Send + Sync + Debug + Clone {
     fn into_param_vec(self) -> Vec<Param>;
 }
 
+/// A trait for a widget that can be used in both the audio graph and the GUI.
 pub trait Widget: 'static {
     type Message: Send + Sync + Debug + Clone + 'static;
     type Params: IntoParamVec;
@@ -17,6 +18,7 @@ pub trait Widget: 'static {
     fn params(&self) -> Self::Params;
 }
 
+/// Parameters for the button widget.
 #[derive(Debug, Clone)]
 pub struct ButtonParams {
     pub pressed: Param,
@@ -28,6 +30,7 @@ impl IntoParamVec for ButtonParams {
     }
 }
 
+/// A simple button widget that sends a boolean value when pressed.
 pub struct Button {
     label: String,
     param: Param,
@@ -37,7 +40,7 @@ impl Button {
     pub fn new(label: &str) -> Self {
         Self {
             label: label.to_string(),
-            param: Param::new(label, None),
+            param: Param::new::<bool>(label, None),
         }
     }
 }
@@ -50,7 +53,7 @@ impl Widget for Button {
     }
 
     fn update(&mut self, _message: ()) {
-        self.param.set(Message::Bang);
+        self.param.send(true);
     }
 
     fn params(&self) -> Self::Params {
@@ -60,6 +63,7 @@ impl Widget for Button {
     }
 }
 
+/// Parameters for the knob widget.
 #[derive(Debug, Clone)]
 pub struct KnobParams {
     pub value: Param,
@@ -68,7 +72,7 @@ pub struct KnobParams {
 impl Default for KnobParams {
     fn default() -> Self {
         Self {
-            value: Param::new("knob", None),
+            value: Param::new::<Float>("knob", None),
         }
     }
 }
@@ -79,6 +83,7 @@ impl IntoParamVec for KnobParams {
     }
 }
 
+/// A simple knob widget that sends a float value between 0.0 and 1.0.
 #[derive(Default)]
 pub struct Knob {
     params: KnobParams,
@@ -109,77 +114,10 @@ impl Widget for Knob {
         self.normal_param.update(message);
         self.params
             .value
-            .set(self.normal_param.value.as_f32() as Sample);
+            .send(self.normal_param.value.as_f32() as Float);
     }
 
     fn params(&self) -> Self::Params {
         self.params.clone()
-    }
-}
-
-impl IcedGraphBuilder {
-    pub fn knob(&self) -> (Knob, Vec<Node>) {
-        self.add_widget(Knob::new())
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct DragNumberParams {
-    pub value: Param,
-}
-
-impl IntoParamVec for DragNumberParams {
-    fn into_param_vec(self) -> Vec<Param> {
-        vec![self.value]
-    }
-}
-
-impl Default for DragNumberParams {
-    fn default() -> Self {
-        Self {
-            value: Param::new("drag_number", None),
-        }
-    }
-}
-
-/// A simple widget that allows the user to drag a number.
-///
-/// The widget can be dragged horizontally to change the value, or double-clicked to type in a new value.
-#[derive(Default)]
-pub struct DragNumber {
-    params: DragNumberParams,
-    value: Sample,
-}
-
-impl DragNumber {
-    pub fn new() -> Self {
-        Self::default()
-    }
-}
-
-impl Widget for DragNumber {
-    type Message = Sample;
-    type Params = DragNumberParams;
-    fn view(&self) -> Element<Sample> {
-        let value = self.value.to_string();
-
-        let wid = mouse_area(text_input("", &value));
-
-        wid.into()
-    }
-
-    fn update(&mut self, message: Sample) {
-        self.value = message;
-        self.params.value.set(message);
-    }
-
-    fn params(&self) -> Self::Params {
-        self.params.clone()
-    }
-}
-
-impl IcedGraphBuilder {
-    pub fn number_dialer(&self) -> (DragNumber, Vec<Node>) {
-        self.add_widget(DragNumber::new())
     }
 }

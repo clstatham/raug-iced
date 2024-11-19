@@ -933,12 +933,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "evalexpr"
-version = "12.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a34d6a32086a56f60134157499b9f397ba3a278f06b59241d17df7b90849e69c"
-
-[[package]]
 name = "expat-sys"
 version = "2.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2507,12 +2501,11 @@ checksum = "9c8a99fddc9f0ba0a85884b8d14e3592853e787d581ca1816c91349b10e4eeab"
 
 [[package]]
 name = "raug"
-version = "0.0.2"
+version = "0.0.4"
 dependencies = [
  "cpal",
  "crossbeam-channel",
  "downcast-rs",
- "evalexpr",
  "hashbrown 0.15.0",
  "hound",
  "itertools",
@@ -2520,7 +2513,9 @@ dependencies = [
  "midir",
  "petgraph",
  "rand",
+ "raug-macros",
  "rustc-hash 2.0.0",
+ "smallvec",
  "thiserror",
 ]
 
@@ -2537,6 +2532,15 @@ dependencies = [
  "itertools",
  "raug",
  "thiserror",
+]
+
+[[package]]
+name = "raug-macros"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.87",
 ]
 
 [[package]]
