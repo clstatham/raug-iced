@@ -1,7 +1,7 @@
 [package]
 name = "raug-iced"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 iced = "0.9"
@@ -11,10 +11,9 @@ crossbeam-channel = { version = "0.5", features = [] }
 itertools = "0.13"
 derive_more = { version = "1", features = ["display"] }
 thiserror = "1.0"
+raug = { path = "../raug" }
+raug-ext = { path = "../raug-ext" }
 
-[dependencies.raug]
-# git = "https://github.com/clstatham/raug"
-path = "../raug"
 
 [dev-dependencies]
 env_logger = "0.11"

@@ -1,11 +1,8 @@
 use iced::{
-    widget::{button, column},
     Application, Command,
+    widget::{button, column},
 };
-use raug::{
-    prelude::*,
-    runtime::{RuntimeError, RuntimeHandle},
-};
+use raug::{graph::GraphRunError, prelude::*};
 
 use crate::widgets::Widget;
 
@@ -19,7 +16,7 @@ pub enum IcedRuntimeMessage<M> {
 #[derive(Debug, thiserror::Error)]
 pub enum IcedRuntimeError {
     #[error("Processor error: {0}")]
-    Processor(#[from] RuntimeError),
+    Processor(#[from] GraphRunError),
     #[error("Iced error: {0}")]
     Iced(#[from] iced::Error),
 }
@@ -54,12 +51,9 @@ impl<T: Widget> IcedRuntime<T> {
 }
 
 pub struct IcedRuntimeApp<T: Widget> {
-    runtime: Option<Runtime>,
-    handle: Option<RuntimeHandle>,
+    stream: CpalStream,
     main_widget: T,
     running: bool,
-    backend: AudioBackend,
-    device: AudioDevice,
 }
 
 impl<T: Widget> Application for IcedRuntimeApp<T> {
@@ -69,15 +63,14 @@ impl<T: Widget> Application for IcedRuntimeApp<T> {
     type Flags = (Graph, T, AudioBackend, AudioDevice);
 
     fn new((graph, main_widget, backend, device): Self::Flags) -> (Self, Command<Self::Message>) {
-        let runtime = Runtime::new(graph);
+        let mut stream = CpalStream::new(backend, device);
+        stream.spawn(&graph).unwrap();
+        stream.pause().unwrap();
         (
             Self {
-                runtime: Some(runtime),
-                handle: None,
+                stream,
                 main_widget,
                 running: false,
-                backend,
-                device,
             },
             Command::none(),
         )
@@ -98,11 +91,7 @@ impl<T: Widget> Application for IcedRuntimeApp<T> {
                     return Command::none();
                 }
 
-                let runtime = self.runtime.as_mut().unwrap();
-                let handle = runtime
-                    .run(self.backend.clone(), self.device.clone(), None)
-                    .unwrap();
-                self.handle = Some(handle);
+                self.stream.play().unwrap();
                 self.running = true;
             }
             IcedRuntimeMessage::StopAudio => {
@@ -110,8 +99,7 @@ impl<T: Widget> Application for IcedRuntimeApp<T> {
                     return Command::none();
                 }
 
-                let handle = self.handle.take().unwrap();
-                handle.stop();
+                self.stream.pause().unwrap();
                 self.running = false;
             }
             IcedRuntimeMessage::Message(message) => {
