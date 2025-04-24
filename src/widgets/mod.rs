@@ -79,9 +79,6 @@ impl Widget for Knob {
     fn update(&mut self, message: Normal) {
         self.normal_param.update(message);
         self.value.send(self.normal_param.value.as_f32()).unwrap();
-        // self.params
-        //     .value
-        //     .send(self.normal_param.value.as_f32() as Float);
     }
 
     fn add_params(&self, graph: &Graph) -> Vec<Node> {

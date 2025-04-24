@@ -53,7 +53,6 @@ impl<T: Widget> IcedRuntime<T> {
 pub struct IcedRuntimeApp<T: Widget> {
     stream: CpalStream,
     main_widget: T,
-    running: bool,
 }
 
 impl<T: Widget> Application for IcedRuntimeApp<T> {
@@ -70,7 +69,6 @@ impl<T: Widget> Application for IcedRuntimeApp<T> {
             Self {
                 stream,
                 main_widget,
-                running: false,
             },
             Command::none(),
         )
@@ -87,20 +85,10 @@ impl<T: Widget> Application for IcedRuntimeApp<T> {
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
             IcedRuntimeMessage::StartAudio => {
-                if self.running {
-                    return Command::none();
-                }
-
                 self.stream.play().unwrap();
-                self.running = true;
             }
             IcedRuntimeMessage::StopAudio => {
-                if !self.running {
-                    return Command::none();
-                }
-
                 self.stream.pause().unwrap();
-                self.running = false;
             }
             IcedRuntimeMessage::Message(message) => {
                 self.main_widget.update(message);

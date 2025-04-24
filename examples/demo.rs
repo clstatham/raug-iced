@@ -15,6 +15,7 @@ fn main() {
         unreachable!()
     };
     let freq = freq * 1000.0;
+    let freq = freq[0].smooth(0.01);
 
     // add a sine oscillator
     let sine = SineOscillator::default().node(&graph, freq, (), ());
