@@ -2,7 +2,10 @@ use iced::{
     Application, Command,
     widget::{button, column},
 };
-use raug::{graph::GraphRunError, prelude::*};
+use raug::{
+    graph::{GraphRunError, RunningGraph},
+    prelude::*,
+};
 
 use crate::widgets::Widget;
 
@@ -51,7 +54,10 @@ impl<T: Widget> IcedRuntime<T> {
 }
 
 pub struct IcedRuntimeApp<T: Widget> {
-    stream: CpalStream,
+    handle: Option<RunningGraph>,
+    backend: AudioBackend,
+    device: AudioDevice,
+    graph: Graph,
     main_widget: T,
 }
 
@@ -62,12 +68,12 @@ impl<T: Widget> Application for IcedRuntimeApp<T> {
     type Flags = (Graph, T, AudioBackend, AudioDevice);
 
     fn new((graph, main_widget, backend, device): Self::Flags) -> (Self, Command<Self::Message>) {
-        let mut stream = CpalStream::new(backend, device);
-        stream.spawn(&graph).unwrap();
-        stream.pause().unwrap();
         (
             Self {
-                stream,
+                handle: None,
+                backend,
+                device,
+                graph,
                 main_widget,
             },
             Command::none(),
@@ -85,10 +91,18 @@ impl<T: Widget> Application for IcedRuntimeApp<T> {
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
             IcedRuntimeMessage::StartAudio => {
-                self.stream.play().unwrap();
+                if self.handle.is_none() {
+                    self.handle = Some(
+                        self.graph
+                            .play(CpalOut::spawn(&self.backend, &self.device))
+                            .unwrap(),
+                    );
+                }
             }
             IcedRuntimeMessage::StopAudio => {
-                self.stream.pause().unwrap();
+                if let Some(handle) = self.handle.take() {
+                    handle.stop().unwrap();
+                }
             }
             IcedRuntimeMessage::Message(message) => {
                 self.main_widget.update(message);

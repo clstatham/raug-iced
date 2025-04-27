@@ -55,15 +55,24 @@ impl Widget for Button {
 pub struct Knob {
     value: Channel<f32>,
     normal_param: NormalParam,
-    tick_marks: iced_audio::tick_marks::Group,
+    max: f32,
+    min: f32,
 }
 
 impl Knob {
-    pub fn new() -> Self {
+    pub fn new(init: f32, min: f32, max: f32) -> Self {
+        let init = init.clamp(min, max);
+        let scale = max - min;
+        let normal = (init - min) / scale;
+        let normal = Normal::from_clipped(normal);
         Self {
-            value: Channel::new(0.0),
-            normal_param: NormalParam::default(),
-            tick_marks: iced_audio::tick_marks::Group::default(),
+            value: Channel::new(init),
+            normal_param: NormalParam {
+                value: normal,
+                default: normal,
+            },
+            max,
+            min,
         }
     }
 }
@@ -71,14 +80,14 @@ impl Knob {
 impl Widget for Knob {
     type Message = Normal;
     fn view(&self) -> Element<Normal> {
-        iced_audio::Knob::new(self.normal_param, |value| value)
-            .tick_marks(&self.tick_marks)
-            .into()
+        iced_audio::Knob::new(self.normal_param, |value| value).into()
     }
 
     fn update(&mut self, message: Normal) {
         self.normal_param.update(message);
-        self.value.send(self.normal_param.value.as_f32()).unwrap();
+        let value = self.normal_param.value.as_f32();
+        let value = value * (self.max - self.min) + self.min;
+        self.value.send(value).unwrap();
     }
 
     fn add_params(&self, graph: &Graph) -> Vec<Node> {
